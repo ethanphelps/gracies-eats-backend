@@ -8,6 +8,6 @@ architecture = "arm64"
 handler = "app.lambda_handler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["HelloWorldFunction"]
+functions = ["GraciesEatsFunction"]
 
 [layer_build_definitions]

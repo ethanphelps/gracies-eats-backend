@@ -1,4 +1,6 @@
 import json
+from pprint import pprint
+
 
 # import requests
 
@@ -25,18 +27,28 @@ def lambda_handler(event, context):
         Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
 
-    # try:
-    #     ip = requests.get("http://checkip.amazonaws.com/")
-    # except requests.RequestException as e:
-    #     # Send some context about this error to Lambda Logs
-    #     print(e)
+    # TODO: add an authentication middleware layer before request routing happens
+    
 
-    #     raise e
+    # route the request
+    pprint(event, indent=2)
+
+    path: str = event['path']
+    method = event['httpMethod']
+
+    if path == '/hello':
+        message = 'hello world from gracies eats backend!'
+    elif path.startswith('/users') and '/recipes' not in path:
+        user_id = event['pathParameters']['user_name']
+    elif '/recipes' in path:
+        # handle recipe endpoints
+        pass
+    else:
+        message = 'not matched'
 
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": "hello world from gracie's eats backend!!!",
-            # "location": ip.text.replace("\n", "")
+            "message": f'message: {message}, method: {method}',
         }),
     }
