@@ -21,28 +21,44 @@ def user_handler(event, path: str, method: str):
 
 def get_user(user_id):
     message = f'Getting user {user_id}...'
-    paginator = client.get_paginator('list_tables')
-    response_iterator = paginator.paginate(
-        PaginationConfig={
-            'MaxItems': 100,
-            'Pagesize': 100
+    res = client.get_item(
+        TableName='GraciesEats',
+        Key={
+            'PK': {'S': f'USER#{user_id}'},
+            'SK': {'S': f'USER#{user_id}'},
         }
     )
-    print(response_iterator)
+    print('res: ')
+    pprint(res)
+    if 'Item' in res:
+        item = res['Item']
+        user = {
+            'email': item['Email']['S'],
+            'firstName': item['FirstName']['S'],
+            'lastName': item['LastName']['S'],
+        }
+        message = f'Retrieved user {user_id}!'
+    else:
+        user = {}
+        message = f'User {user_id} could not be found!'
+    
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": f'Retrieved user {user_id}!',
+            "message": message,
+            "user": user
         }),
     }
 
 
 def create_user(user_id, payload):
+    payload = json.loads(payload)
     message = f'Creating user {user_id}...'
-    pprint(json.loads(payload))
+    pprint(payload)
     email = payload['email']
     first_name = payload['firstName']
     last_name = payload['lastName']
+
     res = client.put_item(
         TableName = 'GraciesEats',
         Item = {
@@ -52,11 +68,12 @@ def create_user(user_id, payload):
             "FirstName": { "S": first_name },
             "LastName": { "S": last_name },
         },
-        ConditionExpression: 'atrribute_notexists(#email)',
-        ExpressionAttributeNames = {
-            "#email": "Email"
-        }
+        # ConditionExpression = 'atrribute_notexists(#email)',
+        # ExpressionAttributeNames = {
+        #     "#email": "Email"
+        # }
     )
+    print(res)
     return {
         "statusCode": 200,
         "body": json.dumps({
