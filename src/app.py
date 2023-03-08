@@ -1,8 +1,7 @@
 import json
 from pprint import pprint
-
-
-# import requests
+from user import user_handler
+from recipe import recipe_handler
 
 
 def lambda_handler(event, context):
@@ -34,20 +33,21 @@ def lambda_handler(event, context):
     pprint(event, indent=2)
 
     path: str = event['path']
-    method = event['httpMethod']
+    method: str = event['httpMethod']
 
     if path == '/hello':
         message = 'hello world from gracies eats backend!'
+        status = 200
     elif path.startswith('/users') and '/recipes' not in path:
-        user_id = event['pathParameters']['user_name']
+        return user_handler(event, path, method)
     elif '/recipes' in path:
-        # handle recipe endpoints
-        pass
+        return recipe_handler(event, path, method)
     else:
         message = 'not matched'
+        status = 404
 
     return {
-        "statusCode": 200,
+        "statusCode": status,
         "body": json.dumps({
             "message": f'message: {message}, method: {method}',
         }),
