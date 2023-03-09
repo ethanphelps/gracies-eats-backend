@@ -30,7 +30,6 @@ def lambda_handler(event, context):
     
 
     # route the request
-    pprint(event, indent=2)
 
     path: str = event['path']
     method: str = event['httpMethod']

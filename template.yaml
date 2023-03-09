@@ -19,7 +19,13 @@ Resources:
       Runtime: python3.9
       Architectures:
         - arm64
+      Timeout: 10
       Events:
+        GetAllUsers:
+          Type: Api 
+          Properties:
+            Path: /users
+            Method: get
         GetUser:
           Type: Api 
           Properties:
@@ -28,7 +34,7 @@ Resources:
         CreateUser:
           Type: Api 
           Properties:
-            Path: /users/{user_name}
+            Path: /users
             Method: post
         UpdateUser:
           Type: Api 
