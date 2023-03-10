@@ -54,7 +54,7 @@ Resources:
         CreateUserRecipe:
           Type: Api 
           Properties:
-            Path: /users/{user_name}/recipes/{recipe_id}
+            Path: /users/{user_name}/recipes
             Method: post
         UpdateUserRecipe:
           Type: Api 

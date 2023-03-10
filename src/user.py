@@ -5,6 +5,7 @@ from pprint import pprint
 client = boto3.client("dynamodb")
 paginator = client.get_paginator("scan")
 
+
 def user_handler(event, path: str, method: str):
     # call corresponding functions based param values and http method
     if path == "/users":
