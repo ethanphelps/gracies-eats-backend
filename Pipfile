@@ -7,6 +7,7 @@ name = "pypi"
 requests = "*"
 boto3 = "*"
 ulid-py = "*"
+pydantic = "*"
 
 [dev-packages]
 

@@ -1,6 +1,8 @@
 import boto3
 import json
 from pprint import pprint
+from models import User
+from utils import response
 
 client = boto3.client("dynamodb")
 paginator = client.get_paginator("scan")
@@ -66,54 +68,57 @@ def get_user(user_id):
 def create_user(payload):
     payload = json.loads(payload)
     pprint(payload)
-    email = payload["email"]
-    first_name = payload["firstName"]
-    last_name = payload["lastName"]
 
+    # validate schema
+    try:
+        user = User(**payload)
+    except Exception as e:
+        print(f'Validation error: {e}')
+        return response(400, {
+            'message': f'Validation error: {e}'
+        })
+
+    # write to dynamodb 
     try:
         res = client.put_item(
             TableName="GraciesEats",
             Item={
-                "PK": {"S": f"USER#{email}"},
-                "SK": {"S": f"USER#{email}"},
-                "Email": {"S": email},
-                "FirstName": {"S": first_name},
-                "LastName": {"S": last_name},
+                "PK": {"S": f"USER#{user.email}"},
+                "SK": {"S": f"USER#{user.email}"},
+                "Email": {"S": user.email},
+                "FirstName": {"S": user.firstName},
+                "LastName": {"S": user.lastName},
             },
             ConditionExpression="attribute_not_exists(#email)",
             ExpressionAttributeNames={"#email": "Email"},
         )
         print(res)
-        return {
-            "statusCode": 200,
-            "body": json.dumps(
-                {
-                    "message": f"Created user {email}!",
-                }
-            ),
-        }
+        return response(201, {
+            'message': f'Created user {user.email}!'
+        })
     except Exception as e:
-        return {
-            "statusCode": 400,
-            "body": json.dumps(
-                {
-                    "message": f"An exception of type {type(e).__name__} occurred: {str(e)}"
-                }
-            ),
-        }
+        return response(400, {
+            "message": f"An exception of type {type(e).__name__} occurred: {str(e)}"
+        })
 
 
 def update_user(user_id, payload):
-    message = f"Updating user {user_id}..."
-    pprint(json.loads(payload))
-    return {
-        "statusCode": 200,
-        "body": json.dumps(
-            {
-                "message": f"Updated user {user_id}!",
-            }
-        ),
-    }
+    payload = json.loads(payload)
+    pprint(payload)
+
+    # validate user
+    try:
+        user = User(**payload)
+    except Exception as e:
+        print(f'Validation error: {e}')
+        return response(400, {
+            'message': f'Validation error: {e}'
+        })
+
+    # update user
+    return response(200, {
+        'message': f'Updated user {user_id}!',
+    })
 
 
 def get_all_users():
