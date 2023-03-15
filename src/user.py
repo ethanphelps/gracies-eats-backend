@@ -134,7 +134,8 @@ def get_all_users():
         for page in response_iterator:
             for user in page['Items']:
                 users.append(user['Email']['S'])
-                print(user)
+                # users.append(user)
+                pprint(user)
         return {
             "statusCode": 200,
             "body": json.dumps({
