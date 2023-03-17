@@ -8,8 +8,8 @@ from utils import response, prettify_dynamo_object
 client = boto3.client("dynamodb")
 
 
+# call corresponding functions based param values and http method
 def recipe_handler(event, path: str, method: str):
-    # call corresponding functions based param values and http method
     pprint(event)
     user_id = event["pathParameters"]["user_name"]
     recipe_id = event["pathParameters"].get("recipe_id", None)
@@ -23,6 +23,8 @@ def recipe_handler(event, path: str, method: str):
             return get_recipe(user_id, recipe_id)
         elif method == "PUT":
             return update_recipe(user_id, recipe_id, payload)
+        elif method == "DELETE":
+            return delete_recipe(user_id, recipe_id)
     else:
         if method == "GET":
             return get_recipes(user_id)
@@ -51,13 +53,11 @@ def get_recipes(user_id):
         return response(400, f"Exception occurred: {e}")
 
 
+# creates recipe with primary key format: USER#email, RECIPE#ulid
 def create_recipe(user_id, recipe_data):
     print(f"Creating recipe for {user_id}!")
     if not recipe_data:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"message": "Recipe data not sent!"}),
-        }
+        return response(400, {"message": "Recipe data not sent!"})
 
     # validate schema
     try:
@@ -120,12 +120,62 @@ def create_recipe(user_id, recipe_data):
             {"message": f"An exception of type {type(e).__name__} occurred: {str(e)}"},
         )
 
-    # USER#email, RECIPE#ulid
-
 
 def get_recipe(user_id, recipe_id):
-    return
+    print(f"Getting recipe {recipe_id} for user {user_id}")
+    try:
+        res = client.query(
+            TableName="GraciesEats",
+            KeyConditionExpression=f"#pk = :user_id AND #sk = :recipe_id",
+            ExpressionAttributeNames={"#pk": "PK", "#sk": "SK"},
+            ExpressionAttributeValues={
+                ":user_id": {"S": f"USER#{user_id}"},
+                ":recipe_id": {"S": f"RECIPE#{recipe_id}"},
+            },
+        )
+        pprint(res)
+        recipes = [prettify_dynamo_object(recipe) for recipe in res['Items']]
+        if recipes:
+            return response(200, recipes)
+        else:
+            return response(404, {'message': f'Recipe {recipe_id} not found.'})
+    except Exception as e:
+        print(f"Exception occured: {e}")
+        return response(400, f"Exception occurred: {e}")
 
 
+# TODO: make generic update function or create specific ones for different updates
 def update_recipe(user_id, recipe_id, recipe_data):
-    pass
+    print(f'Updating recipe {recipe_id} for user {user_id}')
+    try:
+        res = client.update_item(
+            TableName='GraciesEats',
+            Key={
+                'PK': {'S': f'USER#{user_id}'},
+                'SK': {'S': f'RECIPE#{recipe_id}'},
+            },
+            UpdateExpression='',
+            ExpressionAttributeNames={},
+            ExpressionAttributeValues={}
+        )
+        pprint(res)
+    except Exception as e:
+        print(f"Exception occured: {e}")
+        return response(400, f"Exception occurred: {e}")
+
+
+def delete_recipe(user_id, recipe_id):
+    print(f"Deleting recipe {recipe_id} for user {user_id}")
+    try:
+        res = client.delete_item(
+            TableName="GraciesEats",
+            Key={
+                'PK': {'S': f'USER#{user_id}'},
+                'SK': {'S': f'RECIPE#{recipe_id}'},
+            },
+        )
+        pprint(res)
+        return response(200, {'message': f'Deleted recipe {recipe_id}'})
+    except Exception as e:
+        print(f"Exception occured: {e}")
+        return response(400, f"Exception occurred: {e}")
