@@ -2,7 +2,7 @@ import boto3
 import json
 from pprint import pprint
 from models import User
-from utils import response
+from utils import response, prettify_dynamo_object
 
 client = boto3.client("dynamodb")
 paginator = client.get_paginator("scan")
@@ -125,17 +125,22 @@ def get_all_users():
     try:
         response_iterator = paginator.paginate(
             TableName="GraciesEats",
-            FilterExpression="contains(#pk, :value)",
-            ExpressionAttributeNames={"#pk": "PK"},
+            FilterExpression="contains(#pk, :value) AND contains(#sk, :value)",
+            ExpressionAttributeNames={"#pk": "PK", "#sk": "SK"},
             ExpressionAttributeValues={":value": {"S": "USER#"}},
-            ProjectionExpression='Email'
+            # ProjectionExpression='Email'
         )
         users = []
         for page in response_iterator:
             for user in page['Items']:
-                users.append(user['Email']['S'])
+                # users.append(user['Email']['S'])
                 # users.append(user)
-                pprint(user)
+                # users.append(
+                #     [prettify_dynamo_object(user) for user in page['Items']]
+                # )
+                # pprint(user)
+                users.append(prettify_dynamo_object(user))
+        # users = [[prettify_dynamo_object(user) for user in page['Items']] for page in response_iterator]
         return {
             "statusCode": 200,
             "body": json.dumps({
