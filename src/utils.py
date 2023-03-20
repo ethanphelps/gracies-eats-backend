@@ -3,6 +3,9 @@ import json
 def response(status_code, body):
     return {
         "statusCode": status_code,
+        "headers": {
+            "Access-Control-Allow-Origin": "http://localhost:8080"
+        },
         "body": json.dumps(body)
     }
 

@@ -3,6 +3,7 @@ import json
 from pprint import pprint
 from models import User
 from utils import response, prettify_dynamo_object
+import fields
 
 client = boto3.client("dynamodb")
 paginator = client.get_paginator("scan")
@@ -85,9 +86,9 @@ def create_user(payload):
             Item={
                 "PK": {"S": f"USER#{user.email}"},
                 "SK": {"S": f"USER#{user.email}"},
-                "Email": {"S": user.email},
-                "FirstName": {"S": user.firstName},
-                "LastName": {"S": user.lastName},
+                fields.EMAIL: {"S": user.email},
+                fields.FIRST_NAME: {"S": user.firstName},
+                fields.LAST_NAME: {"S": user.lastName},
             },
             ConditionExpression="attribute_not_exists(#email)",
             ExpressionAttributeNames={"#email": "Email"},
@@ -133,14 +134,7 @@ def get_all_users():
         users = []
         for page in response_iterator:
             for user in page['Items']:
-                # users.append(user['Email']['S'])
-                # users.append(user)
-                # users.append(
-                #     [prettify_dynamo_object(user) for user in page['Items']]
-                # )
-                # pprint(user)
                 users.append(prettify_dynamo_object(user))
-        # users = [[prettify_dynamo_object(user) for user in page['Items']] for page in response_iterator]
         return {
             "statusCode": 200,
             "body": json.dumps({

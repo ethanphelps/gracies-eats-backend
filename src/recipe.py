@@ -4,6 +4,7 @@ import ulid
 from pprint import pprint
 from models import Recipe
 from utils import response, prettify_dynamo_object
+import fields
 
 client = boto3.client("dynamodb")
 
@@ -73,8 +74,8 @@ def create_recipe(user_id, recipe_data):
     ingredient_list = [
         {
             "M": {
-                "name": {"S": ingredient.name},
-                "quantity": {"N": str(ingredient.quantity)},
+                fields.INGREDIENT_NAME: {"S": ingredient.name},
+                fields.INGREDIENT_QUANTITY: {"N": str(ingredient.quantity)},
             }
         }
         for ingredient in recipe.ingredients
@@ -82,8 +83,8 @@ def create_recipe(user_id, recipe_data):
     instruction_list = [
         {
             "M": {
-                "description": {"S": instruction.description},
-                "prePrep": {"BOOL": instruction.prePrep},
+                fields.INSTRUCTION_DESCRIPTION: {"S": instruction.description},
+                fields.INSTRUCTION_PREPREP: {"BOOL": instruction.prePrep},
             }
         }
         for instruction in recipe.instructions
@@ -96,14 +97,14 @@ def create_recipe(user_id, recipe_data):
             Item={
                 "PK": {"S": f"USER#{user_id}"},
                 "SK": {"S": f"RECIPE#{str(recipe_id)}"},
-                "Id": {"S": str(recipe_id)},
-                "Name": {"S": recipe.name},
-                "Description": {"S": recipe.description},
-                "PrepTime": {"S": recipe.prepTime},
-                "CookTime": {"S": recipe.cookTime},
-                "Serves": {"N": str(recipe.serves)},
-                "Ingredients": {"L": ingredient_list},
-                "Instructions": {"L": instruction_list},
+                fields.ID: {"S": str(recipe_id)},
+                fields.NAME: {"S": recipe.name},
+                fields.DESCRIPTION: {"S": recipe.description},
+                fields.PREP_TIME: {"S": recipe.prepTime},
+                fields.COOK_TIME: {"S": recipe.cookTime},
+                fields.SERVES: {"N": str(recipe.serves)},
+                fields.INGREDIENTS: {"L": ingredient_list},
+                fields.INSTRUCTIONS: {"L": instruction_list},
             },
         )
         print(res)
@@ -134,9 +135,9 @@ def get_recipe(user_id, recipe_id):
             },
         )
         pprint(res)
-        recipes = [prettify_dynamo_object(recipe) for recipe in res['Items']]
-        if recipes:
-            return response(200, recipes)
+        if res['Items']:
+            recipe = prettify_dynamo_object(res['Items'][0])
+            return response(200, recipe)
         else:
             return response(404, {'message': f'Recipe {recipe_id} not found.'})
     except Exception as e:

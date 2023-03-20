@@ -12,13 +12,6 @@ class InstructionStep(BaseModel):
     prePrep: bool
 
 
-# for validating user creation and updating
-class User(BaseModel):
-    email: str
-    firstName: str
-    lastName: str
-
-
 # for validating recipe creation and updating
 class Recipe(BaseModel):
     id: Optional[str]
@@ -29,3 +22,10 @@ class Recipe(BaseModel):
     serves: int
     ingredients: list[Ingredient]
     instructions: list[InstructionStep]
+
+
+# for validating user creation and updating
+class User(BaseModel):
+    email: str
+    firstName: str
+    lastName: str
