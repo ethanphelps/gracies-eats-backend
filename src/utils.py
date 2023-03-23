@@ -1,12 +1,11 @@
 import json
 
+
 def response(status_code, body):
     return {
         "statusCode": status_code,
-        "headers": {
-            "Access-Control-Allow-Origin": "http://localhost:8080"
-        },
-        "body": json.dumps(body)
+        "headers": {"Access-Control-Allow-Origin": "http://localhost:8080"},
+        "body": json.dumps(body),
     }
 
 
@@ -51,4 +50,3 @@ def dynamo_type(dynamo_obj):
 # extracts value of a field in a dynamo db response object
 def dynamo_value(dynamo_obj):
     return list(dynamo_obj.values())[0]
-
