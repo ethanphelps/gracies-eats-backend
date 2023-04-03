@@ -11,6 +11,7 @@ INGREDIENT_NAME = 'name'
 INGREDIENT_QUANTITY = 'quantity'
 INSTRUCTION_DESCRIPTION = 'description'
 INSTRUCTION_PREPREP = 'prePrep'
+IMAGE_URL = 'coverImageUrl'
 
 # user fields
 EMAIL = 'email'

@@ -8,8 +8,10 @@ requests = "*"
 boto3 = "*"
 ulid-py = "*"
 pydantic = "*"
+aws-lambda-powertools = "*"
 
 [dev-packages]
+aws-lambda-powertools = {extras = ["aws-sdk"], version = "*"}
 
 [requires]
 python_version = "3.9"

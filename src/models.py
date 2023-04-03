@@ -22,6 +22,7 @@ class Recipe(BaseModel):
     serves: int
     ingredients: list[Ingredient]
     instructions: list[InstructionStep]
+    src: Optional[str]
 
 
 # for validating user creation and updating

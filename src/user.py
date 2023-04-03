@@ -163,8 +163,6 @@ def update_user(user_id, payload):
         )
 
         pprint(res)
-
-        
     except Exception as e:
         # if isinstance(e, ValidationException):
         #     return response(400, { 'message': str(e) })

@@ -5,8 +5,10 @@ from pprint import pprint
 from models import Recipe
 from utils import response, prettify_dynamo_object
 import fields
+import base64
 
 client = boto3.client("dynamodb")
+s3_client = boto3.client("s3")
 
 
 # call corresponding functions based param values and http method
@@ -15,15 +17,12 @@ def recipe_handler(event, path: str, method: str):
     user_id = event["pathParameters"]["user_name"]
     recipe_id = event["pathParameters"].get("recipe_id", None)
     body = event.get("body", {})
-    payload = json.loads(body) if body else body
-    print("payload:")
-    print(payload)
 
     if recipe_id:
         if method == "GET":
             return get_recipe(user_id, recipe_id)
         elif method == "PUT":
-            return update_recipe(user_id, recipe_id, payload)
+            return update_recipe(user_id, recipe_id, body)
         elif method == "DELETE":
             return delete_recipe(user_id, recipe_id)
     else:
@@ -31,7 +30,7 @@ def recipe_handler(event, path: str, method: str):
             return get_recipes(user_id)
         elif method == "POST":
             print("create recipe!!!")
-            return create_recipe(user_id, payload)
+            return create_recipe(user_id, body)
 
 
 def get_recipes(user_id):
@@ -55,10 +54,15 @@ def get_recipes(user_id):
 
 
 # creates recipe with primary key format: USER#email, RECIPE#ulid
+# returns a pre-signed url for uploading cover image to S3
 def create_recipe(user_id, recipe_data):
     print(f"Creating recipe for {user_id}!")
     if not recipe_data:
         return response(400, {"message": "Recipe data not sent!"})
+
+    recipe_data = json.loads(recipe_data) if recipe_data else recipe_data
+    print("recipe_data:")
+    print(recipe_data)
 
     # validate schema
     try:
@@ -90,6 +94,24 @@ def create_recipe(user_id, recipe_data):
         for instruction in recipe.instructions
     ]
 
+
+    # create presigned url for cover image upload and send to UI
+    try:
+        presigned_url_data = s3_client.generate_presigned_post(
+            Bucket='gracies-eats-recipe-images',
+            Key=f'{user_id}/{recipe_id}',
+            ExpiresIn=30
+        )
+        pprint(presigned_url_data)
+    except Exception as e:
+        return response(
+            500,
+            {"message": f"An exception of type {type(e).__name__} occurred: {str(e)}"},
+        )
+
+    image_url = presigned_url_data['url'] + presigned_url_data['fields']['key']
+    print(f'Image url: {image_url}')
+
     # write recipe
     try:
         res = client.put_item(
@@ -105,6 +127,7 @@ def create_recipe(user_id, recipe_data):
                 fields.SERVES: {"N": str(recipe.serves)},
                 fields.INGREDIENTS: {"L": ingredient_list},
                 fields.INSTRUCTIONS: {"L": instruction_list},
+                fields.IMAGE_URL: {"S": image_url}
             },
         )
         print(res)
@@ -113,6 +136,7 @@ def create_recipe(user_id, recipe_data):
             {
                 "message": f"Created recipe {str(recipe_id)}!",
                 "recipeId": str(recipe_id),
+                "presignedUrlData": presigned_url_data
             },
         )
     except Exception as e:
@@ -147,6 +171,9 @@ def get_recipe(user_id, recipe_id):
 
 # TODO: make generic update function or create specific ones for different updates
 def update_recipe(user_id, recipe_id, recipe_data):
+    recipe_data = json.loads(recipe_data) if recipe_data else recipe_data
+    print("recipe_data:")
+    print(recipe_data)
     print(f'Updating recipe {recipe_id} for user {user_id}')
     try:
         res = client.update_item(

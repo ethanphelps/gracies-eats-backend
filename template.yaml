@@ -9,6 +9,13 @@ Description: >
 Globals:
   Function:
     Timeout: 3
+  Api:
+    # BinaryMediaTypes:
+    #   - "*~1*" # figure out why this value makes multipart/form-data content type with images work
+    Cors: # returns required CORS headers on the prefilght requests (and all others) to satisfy non-simple CORS request requirements from the browser
+      AllowMethods: "'GET, POST, PUT, DELETE, OPTIONS'"
+      AllowOrigin: "'*'"
+      AllowHeaders: "'Content-Type, Authorization'"
 
 Resources:
   GraciesEatsFunction:

@@ -19,7 +19,7 @@ def prettify_dynamo_object(dynamo_obj):
         if dynamo_type(item) == 'S' or dynamo_type(item) == 'BOOL':
             res[key] = dynamo_value(item)
         elif dynamo_type(item) == 'N':
-            res[key] = int(dynamo_value(item))
+            res[key] = float(dynamo_value(item))
         elif dynamo_type(item) == 'L':
             res[key] = prettify_dynamo_list(dynamo_value(item))
         elif dynamo_type(item) == 'M':
@@ -34,7 +34,7 @@ def prettify_dynamo_list(dynamo_list):
         if dynamo_type(item) == 'S' or dynamo_type(item) == 'BOOL':
             res.append(dynamo_value(item))
         elif dynamo_type(item) == 'N':
-            res.append(int(dynamo_value(item)))
+            res.append(float(dynamo_value(item)))
         elif dynamo_type(item) == 'L':
             res.append(prettify_dynamo_list(dynamo_value(item)))
         elif dynamo_type(item) == 'M':
