@@ -9,3 +9,14 @@ region = "us-east-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
+
+[sam-deploy]
+[sam-deploy.deploy]
+[sam-deploy.deploy.parameters]
+stack_name = "gracies-eats-backend"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-bhhj96vf3w90"
+s3_prefix = "gracies-eats-backend"
+region = "us-east-1"
+profile = "sam-deploy"
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
